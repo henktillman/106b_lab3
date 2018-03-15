@@ -89,6 +89,7 @@ class ArcPath(MotionPath):
             target position of turtlebot
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
     def target_velocity(self, s):
         """
@@ -105,6 +106,7 @@ class ArcPath(MotionPath):
             target velocity of turtlebot
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
     @property
     def total_length(self):
@@ -115,6 +117,7 @@ class ArcPath(MotionPath):
             total length of the path
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
 class LinearPath(MotionPath):
     def __init__(self, length):
@@ -141,6 +144,7 @@ class LinearPath(MotionPath):
             target position of turtlebot
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
     def target_velocity(self, s):
         """
@@ -157,6 +161,7 @@ class LinearPath(MotionPath):
             target velocity of turtlebot
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
     @property
     def total_length(self):
@@ -167,6 +172,7 @@ class LinearPath(MotionPath):
             total length of the path
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
 class ChainPath(MotionPath):
     def __init__(self, subpaths):
@@ -193,6 +199,7 @@ class ChainPath(MotionPath):
             target position of turtlebot
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
     def target_velocity(self, s):
         """
@@ -209,6 +216,7 @@ class ChainPath(MotionPath):
             target velocity of turtlebot
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
     @property
     def total_length(self):
@@ -219,9 +227,11 @@ class ChainPath(MotionPath):
             total length of the path
         """
         # YOUR CODE HERE
+        raise NotImplementedError()
 
 def compute_obstacle_avoid_path(dist, obs_center, obs_radius):
     # YOUR CODE HERE
+    raise NotImplementedError()
 
 def plot_path(path):
     """

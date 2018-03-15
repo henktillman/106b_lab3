@@ -1,0 +1,8 @@
+prefix=/home/cc/ee106b/sp18/class/ee106b-aax/ros_workspaces/lab3_ws/devel
+
+Name: lab3_pkg
+Description: Description of lab3_pkg
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/cc/ee106b/sp18/class/ee106b-aax/ros_workspaces/lab3_ws/devel/lib 
+Requires: 

@@ -128,6 +128,7 @@ class LinearPath(MotionPath):
             length of the path
         """
         self.length = length
+        self.speed = 1.0
 
     def target_state(self, s):
         """
@@ -143,7 +144,7 @@ class LinearPath(MotionPath):
         :obj:`numpy.ndarray`
             target position of turtlebot
         """
-        return np.array([0, s])
+        return np.array([0, s, 0])
         
 
     def target_velocity(self, s):
@@ -161,7 +162,7 @@ class LinearPath(MotionPath):
             target velocity of turtlebot
         """
         # YOUR CODE HERE
-        return np.array([0, 1.0])
+        return np.array([0, self.speed, 0])
 
     @property
     def total_length(self):
@@ -184,6 +185,15 @@ class ChainPath(MotionPath):
         """
         self.subpaths = subpaths
 
+    def get_subpath_index_and_displacement(self, s):
+        path_lengths = [path.total_length() for path in self.subpaths]
+        for i in range(len(path_lengths)):
+            length = path_lengths[i]
+            s -= length
+            if s < 0:
+                return i, s + length
+
+
     def target_state(self, s):
         """
         Target position of turtlebot given the current path length s for Chained Path
@@ -198,8 +208,9 @@ class ChainPath(MotionPath):
         :obj:`numpy.ndarray`
             target position of turtlebot
         """
-        # YOUR CODE HERE
-        raise NotImplementedError()
+        i, s = self.get_subpath_index_and_displacement(s)
+        return self.subpaths[i].target_state(s)
+        
 
     def target_velocity(self, s):
         """
@@ -216,7 +227,8 @@ class ChainPath(MotionPath):
             target velocity of turtlebot
         """
         # YOUR CODE HERE
-        raise NotImplementedError()
+        i, s = self.get_subpath_index_and_displacement(s)
+        return self.subpaths[i].target_velocity(s)
 
     @property
     def total_length(self):
@@ -227,7 +239,7 @@ class ChainPath(MotionPath):
             total length of the path
         """
         # YOUR CODE HERE
-        raise NotImplementedError()
+        return sum([path.total_length() for path in self.subpaths])
 
 def compute_obstacle_avoid_path(dist, obs_center, obs_radius):
     # YOUR CODE HERE

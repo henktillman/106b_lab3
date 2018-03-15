@@ -143,8 +143,8 @@ class LinearPath(MotionPath):
         :obj:`numpy.ndarray`
             target position of turtlebot
         """
-        # YOUR CODE HERE
-        raise NotImplementedError()
+        return np.array([0, s])
+        
 
     def target_velocity(self, s):
         """
@@ -161,7 +161,7 @@ class LinearPath(MotionPath):
             target velocity of turtlebot
         """
         # YOUR CODE HERE
-        raise NotImplementedError()
+        return np.array([0, 1.0])
 
     @property
     def total_length(self):
@@ -172,7 +172,7 @@ class LinearPath(MotionPath):
             total length of the path
         """
         # YOUR CODE HERE
-        raise NotImplementedError()
+        return self.length
 
 class ChainPath(MotionPath):
     def __init__(self, subpaths):

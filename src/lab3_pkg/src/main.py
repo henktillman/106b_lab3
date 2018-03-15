@@ -27,7 +27,7 @@ controller = Controller(path, k, target_speed, obstacle, obstacle_center, obstac
 
 def get_pos(pos, rot):
     yaw = np.arcsin(2*rot[0]*rot[1] + 2*rot[2]*rot[3])
-    return [pos[0], pos[1], yaw]
+    return np.array([pos[0], pos[1], yaw])
 
 def main():
     rospy.init_node('Lab3', anonymous=False)
@@ -62,7 +62,7 @@ def main():
         # 3x1 array, representing (x,y,theta) of current robot state
         current_state = get_pos(current_pos, current_rot)
         # 3x1 array representing (x,y,theta) of current robot state, relative to starting state.  look at rigid method in utils.py
-        current_state = None
+        current_state = current_state - start_state
         
         # for the plot at the end
         times.append(s * hertz)

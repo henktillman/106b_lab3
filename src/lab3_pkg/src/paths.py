@@ -65,7 +65,7 @@ class ArcPath(MotionPath):
         radius: float
             how big of a circle in meters
         angle: float
-            how much of the circle do you want to complete (in radians).  
+            how much of the circle do you want to complete (in radians).
             Can be positive or negative
         left_turn: bool
             whether the turtlebot should turn left or right
@@ -73,6 +73,9 @@ class ArcPath(MotionPath):
         self.radius = radius
         self.angle = angle
         self.left_turn = left_turn
+        self.center = np.array([-self.radius, 0])
+        self.target_velocity_norm = 1
+        self.time = self.total_length / self.target_velocity_norm
 
     def target_state(self, s):
         """
@@ -88,7 +91,12 @@ class ArcPath(MotionPath):
         :obj:`numpy.ndarray`
             target position of turtlebot
         """
-        # YOUR CODE HERE
+        angle = s / self.total_length / self.angle
+        pos = self.center + self.radius * np.array([self.cos(angle), self.sin(angle)])
+        if self.left_turn:
+            return np.array([pos[0], pos[1], angle])
+        else:
+            return np.array([-pos[0], pos[1], -angle])
 
     def target_velocity(self, s):
         """
@@ -104,7 +112,13 @@ class ArcPath(MotionPath):
         :obj:`numpy.ndarray`
             target velocity of turtlebot
         """
-        # YOUR CODE HERE
+        angle = s / self.total_length / self.angle
+        theta_dot = self.angle / self.time
+        pos_dot = self.target_velocity_norm * np.array([self.cos(angle + np.pi/2), self.sin(angle + np.pi/2)])
+        if self.left_turn:
+            return np.array([pos_dot[0], pos_dot[1], theta_dot])
+        else:
+            return np.array([-pos_dot[0], pos_dot[1], -theta_dot])
 
     @property
     def total_length(self):
@@ -114,7 +128,7 @@ class ArcPath(MotionPath):
         float
             total length of the path
         """
-        # YOUR CODE HERE
+        return self.angle * self.radius
 
 class LinearPath(MotionPath):
     def __init__(self, length):

@@ -253,8 +253,35 @@ class ChainPath(MotionPath):
         return sum([path.total_length() for path in self.subpaths])
 
 def compute_obstacle_avoid_path(dist, obs_center, obs_radius):
-    # YOUR CODE HERE
-    raise NotImplementedError()
+    obs_angle = np.arctan(obs_center[1] / obs_center[0])
+    # turn to face obs
+    subpaths = subpaths.append(ArcPath(0, obs_angle, left_turn=False))
+    # execute first half
+    obs_dist = np.linalg.norm(obs_center)
+    subpaths.extend(get_half_obs_path(obs_dist, obs_radius))
+    # execute second half
+    subpaths.extend(list(reversed(get_half_obs_path(dist - obs_dist, obs_radius))))
+    return ChainPath(subpaths)
+
+def get_half_obs_path(obs_y, obs_radius):
+    tan_dist = np.sqrt(obs_y**2 - obs_radius**2)
+
+    def get_tan_point(obs_y, obs_radius, tan_dist):
+        k = tan_dist
+        r = obs_radius
+        y = obs_y
+        a = np.sqrt(-k**4 - 2*k**2 * (r**2 - 2*y**2) - r**4) / (2*y)
+        b = (k**2 + r**2) / (2*y)
+        return np.array(a, b)
+
+    tan_point = get_tan_point(obs_y, obs_radius, tan_dist)
+    tan_angle = np.arctan(tan_point[1] / tan_point[0])
+
+    subpaths = []
+    subpaths.append(ArcPath(0, tan_angle, left_turn=False))
+    subpaths.append(LinearPath(tan_dist))
+    subpaths.append(ArcPath(obs_radius, tan_angle, left_turn=True))
+    return subpaths
 
 def plot_path(path):
     """
@@ -272,10 +299,20 @@ def plot_path(path):
     plt.show()
 
 # YOUR CODE HERE
-parallel_parking_path = ChainPath([])
+parallel_parking_path = ChainPath([
+    LinearPath(1),
+    ArcPath(0, np.pi/6, left_turn=False),
+    LinearPath(-1/np.cos(np.pi/6)),
+    ArcPath(0, np.pi/6, left_turn=True),
+    LinearPath(1)
+])
 
 # YOUR CODE HERE
-three_point_turn_path = ChainPath([])
+three_point_turn_path = ChainPath([
+    ArcPath(1, 2*np.pi/3, left_turn=False),
+    ArcPath(1, -2*np.pi/3, left_turn=True),
+    ArcPath(1, 2*np.pi/3, left_turn=False)
+])
 
 if __name__ == '__main__':
     path = three_point_turn_path

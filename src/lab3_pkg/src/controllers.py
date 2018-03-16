@@ -1,12 +1,13 @@
 # imports may be necessary
 
 class Controller():
-	def __init__(self, path, target_speed, obstacle, obstacle_center, obstacle_radius):
+	def __init__(self, path, k, target_speed, obstacle, obstacle_center, obstacle_radius):
 		self.path = path
+		self.k = k
 		self.target_speed = target_speed
 		self.obstacle = obstacle
 		self.obstacle_center = obstacle_center
-		self.obstacle_radius = self.obstacle_radius
+		self.obstacle_radius = obstacle_radius
 
 	def step_path(self, current_state, s):
 		"""
@@ -27,3 +28,4 @@ class Controller():
 
 		"""
 		# YOUR CODE HERE
+		raise NotImplementedError()

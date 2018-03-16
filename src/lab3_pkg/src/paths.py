@@ -70,8 +70,10 @@ class ArcPath(MotionPath):
         left_turn: bool
             whether the turtlebot should turn left or right
         """
-        self.radius = radius
+        self.radius = max(radius, 1e-8)
         self.angle = angle
+        if np.abs(self.angle) < 1e-8:
+            self.angle = 1e-8
         self.left_turn = left_turn
         self.center = np.array([-self.radius, 0])
         self.target_velocity_norm = 1
@@ -91,8 +93,8 @@ class ArcPath(MotionPath):
         :obj:`numpy.ndarray`
             target position of turtlebot
         """
-        angle = s / self.total_length / self.angle
-        pos = self.center + self.radius * np.array([self.cos(angle), self.sin(angle)])
+        angle = s / self.total_length * self.angle
+        pos = self.center + self.radius * np.array([np.cos(angle), np.sin(angle)])
         if self.left_turn:
             return np.array([pos[0], pos[1], angle])
         else:
@@ -112,7 +114,7 @@ class ArcPath(MotionPath):
         :obj:`numpy.ndarray`
             target velocity of turtlebot
         """
-        angle = s / self.total_length / self.angle
+        angle = s / self.total_length * self.angle
         theta_dot = self.angle / self.time
         pos_dot = self.target_velocity_norm * np.array([self.cos(angle + np.pi/2), self.sin(angle + np.pi/2)])
         if self.left_turn:
@@ -128,7 +130,7 @@ class ArcPath(MotionPath):
         float
             total length of the path
         """
-        return self.angle * self.radius
+        return abs(self.angle * self.radius)
 
 class LinearPath(MotionPath):
     def __init__(self, length):
@@ -140,6 +142,7 @@ class LinearPath(MotionPath):
         """
         self.length = length
         self.speed = 1.0
+        self.sgn = 1 if self.length >= 0 else -1
 
     def target_state(self, s):
         """
@@ -155,7 +158,7 @@ class LinearPath(MotionPath):
         :obj:`numpy.ndarray`
             target position of turtlebot
         """
-        return np.array([0, s, 0])
+        return np.array([0, s * self.sgn, 0])
 
 
     def target_velocity(self, s):
@@ -173,7 +176,7 @@ class LinearPath(MotionPath):
             target velocity of turtlebot
         """
         # YOUR CODE HERE
-        return np.array([0, self.speed, 0])
+        return np.array([0, self.speed * self.sgn, 0])
 
     @property
     def total_length(self):
@@ -184,7 +187,7 @@ class LinearPath(MotionPath):
             total length of the path
         """
         # YOUR CODE HERE
-        return self.length
+        return abs(self.length)
 
 class ChainPath(MotionPath):
     def __init__(self, subpaths):
@@ -197,13 +200,13 @@ class ChainPath(MotionPath):
         self.subpaths = subpaths
 
     def get_subpath_index_and_displacement(self, s):
-        path_lengths = [path.total_length() for path in self.subpaths]
+        path_lengths = [path.total_length for path in self.subpaths]
         for i in range(len(path_lengths)):
             length = path_lengths[i]
             s -= length
             if s < 0:
                 return i, s + length
-
+        return len(path_lengths) - 1, self.subpaths[len(path_lengths)-1].total_length
 
     def target_state(self, s):
         """
@@ -220,8 +223,10 @@ class ChainPath(MotionPath):
             target position of turtlebot
         """
         i, s = self.get_subpath_index_and_displacement(s)
-        return self.subpaths[i].target_state(s)
-
+        target_state = self.subpaths[i].target_state(s)
+        for j in reversed(range(0, i)):
+            target_state = self.rotate_about_endpoint(target_state, self.subpaths[j].end_state)
+        return target_state
 
     def target_velocity(self, s):
         """
@@ -250,12 +255,20 @@ class ChainPath(MotionPath):
             total length of the path
         """
         # YOUR CODE HERE
-        return sum([path.total_length() for path in self.subpaths])
+        return sum([path.total_length for path in self.subpaths])
+
+    def rotate_about_endpoint(self, cur_twist, end_twist):
+        cur_twist[0], cur_twist[1] = np.dot(rotation2d(end_twist[2]), cur_twist[:2])
+        cur_twist[2] += end_twist[2]
+        cur_twist[0] += end_twist[0]
+        cur_twist[1] += end_twist[1]
+        return cur_twist
 
 def compute_obstacle_avoid_path(dist, obs_center, obs_radius):
-    obs_angle = np.arctan(obs_center[1] / obs_center[0])
+    obs_angle = np.arctan2(obs_center[1], obs_center[0]) - np.pi/2
+    subpaths = []
     # turn to face obs
-    subpaths = subpaths.append(ArcPath(0, obs_angle, left_turn=False))
+    subpaths.append(ArcPath(0, obs_angle, left_turn=True))
     # execute first half
     obs_dist = np.linalg.norm(obs_center)
     subpaths.extend(get_half_obs_path(obs_dist, obs_radius))
@@ -266,22 +279,22 @@ def compute_obstacle_avoid_path(dist, obs_center, obs_radius):
 def get_half_obs_path(obs_y, obs_radius):
     tan_dist = np.sqrt(obs_y**2 - obs_radius**2)
 
-    def get_tan_point(obs_y, obs_radius, tan_dist):
-        k = tan_dist
-        r = obs_radius
-        y = obs_y
-        a = np.sqrt(-k**4 - 2*k**2 * (r**2 - 2*y**2) - r**4) / (2*y)
-        b = (k**2 + r**2) / (2*y)
-        return np.array(a, b)
-
     tan_point = get_tan_point(obs_y, obs_radius, tan_dist)
-    tan_angle = np.arctan(tan_point[1] / tan_point[0])
+    tan_angle = np.arctan2(tan_point[1], tan_point[0]) - np.pi/2
 
     subpaths = []
-    subpaths.append(ArcPath(0, tan_angle, left_turn=False))
+    subpaths.append(ArcPath(0, tan_angle, left_turn=True))
     subpaths.append(LinearPath(tan_dist))
-    subpaths.append(ArcPath(obs_radius, tan_angle, left_turn=True))
+    subpaths.append(ArcPath(obs_radius, -tan_angle, left_turn=True))
     return subpaths
+
+def get_tan_point(obs_y, obs_radius, tan_dist):
+    k = tan_dist
+    r = obs_radius
+    y = obs_y
+    a = np.sqrt(-k**4 + 2*k**2 * (r**2+y**2) - (r**2-y**2)**2) / (2*y)
+    b = (k**2 - r**2 + y**2) / (2*y)
+    return np.array([a, b])
 
 def plot_path(path):
     """
@@ -309,13 +322,13 @@ parallel_parking_path = ChainPath([
 
 # YOUR CODE HERE
 three_point_turn_path = ChainPath([
-    ArcPath(1, 2*np.pi/3, left_turn=False),
-    ArcPath(1, -2*np.pi/3, left_turn=True),
-    ArcPath(1, 2*np.pi/3, left_turn=False)
+    ArcPath(1, np.pi/3, left_turn=False),
+    ArcPath(1, -np.pi/3, left_turn=True),
+    ArcPath(1, np.pi/3, left_turn=False)
 ])
 
 if __name__ == '__main__':
-    path = three_point_turn_path
-    # path = compute_obstacle_avoid_path()
+    # path = parallel_parking_path
+    path = compute_obstacle_avoid_path(4, np.array([0, 2]), 1)
     print(path.end_state)
     plot_path(path)

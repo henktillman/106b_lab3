@@ -28,4 +28,7 @@ class Controller():
 
 		"""
 		# YOUR CODE HERE
-		raise NotImplementedError()
+		target_s = self.path.target_state(s)
+		target_v = self.path.target_velocity(s)
+
+		

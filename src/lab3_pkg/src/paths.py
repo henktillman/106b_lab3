@@ -3,6 +3,8 @@ import math
 from math import sin, cos, asin, acos, atan2, sqrt
 from utils import *
 from matplotlib import pyplot as plt
+# from main import target_speed as TARGET_SPEED
+TARGET_SPEED = 0.2
 
 class MotionPath:
     def target_state(self, s):
@@ -76,8 +78,9 @@ class ArcPath(MotionPath):
             self.angle = 1e-8
         self.left_turn = left_turn
         self.center = np.array([-self.radius, 0])
-        self.target_velocity_norm = 0.2
+        self.target_velocity_norm = TARGET_SPEED
         self.time = self.total_length / self.target_velocity_norm
+        self.sgn = 1 if self.angle >= 0 else -1
 
     def target_state(self, s):
         """
@@ -116,7 +119,7 @@ class ArcPath(MotionPath):
         """
         angle = s / self.total_length * self.angle
         theta_dot = self.angle / self.time
-        pos_dot = self.target_velocity_norm * np.array([np.cos(angle + np.pi/2), np.sin(angle + np.pi/2)])
+        pos_dot = self.target_velocity_norm * self.sgn * np.array([np.cos(angle + np.pi/2), np.sin(angle + np.pi/2)])
         if self.left_turn:
             return np.array([pos_dot[0], pos_dot[1], theta_dot])
         else:
@@ -141,7 +144,7 @@ class LinearPath(MotionPath):
             length of the path
         """
         self.length = length
-        self.speed = 1.0
+        self.speed = TARGET_SPEED
         self.sgn = 1 if self.length >= 0 else -1
 
     def target_state(self, s):
@@ -226,6 +229,7 @@ class ChainPath(MotionPath):
         target_state = self.subpaths[i].target_state(s)
         for j in reversed(range(0, i)):
             target_state = self.rotate_about_endpoint(target_state, self.subpaths[j].end_state)
+        target_state[2] = std_range(target_state[2])
         return target_state
 
     def target_velocity(self, s):
@@ -245,6 +249,10 @@ class ChainPath(MotionPath):
         # YOUR CODE HERE
         i, s = self.get_subpath_index_and_displacement(s)
         return self.subpaths[i].target_velocity(s)
+
+    def sgn(self, s):
+        i, s = self.get_subpath_index_and_displacement(s)
+        return self.subpaths[i].sgn
 
     @property
     def total_length(self):
@@ -322,18 +330,17 @@ parallel_parking_path = ChainPath([
 
 # YOUR CODE HERE
 three_point_turn_path = ChainPath([
-    ArcPath(1, np.pi/3, left_turn=False),
-    ArcPath(1, -np.pi/3, left_turn=True),
-    ArcPath(1, np.pi/3, left_turn=False)
+    ArcPath(0.5, np.pi/3, left_turn=False),
+    ArcPath(0.5, -np.pi/3, left_turn=True),
+    ArcPath(0.5, np.pi/3, left_turn=False)
 ])
 
 test_path = ChainPath([
-    LinearPath(1),
-    ArcPath(1, -np.pi/3, left_turn=True)
+    ArcPath(0.5, -2*np.pi, left_turn=False)
 ])
 
 if __name__ == '__main__':
-    # path = parallel_parking_path
-    path = compute_obstacle_avoid_path(4, np.array([0, 2]), 1)
+    path = three_point_turn_path
+    # path = compute_obstacle_avoid_path(4, np.array([0, 2]), 1)
     print(path.end_state)
-    plot_path(three_point_turn_path)
+    plot_path(path)

@@ -57,3 +57,10 @@ def rigid(twist):
             [sin(twist[2]), cos(twist[2]), twist[1]],
             [0, 0, 1]
         ])
+
+def std_range(theta):
+    while theta < 0:
+		theta += 2*np.pi
+    while theta >= 2*np.pi:
+    	theta -= 2*np.pi
+    return theta

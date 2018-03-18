@@ -13,8 +13,8 @@ cmd_vel = rospy.Publisher('cmd_vel_mux/input/navi', Twist, queue_size=10)
 
 # path = parallel_parking_path
 # path = three_point_turn_path
-path = compute_obstacle_avoid_path(4.0, vec(2.0, -0.0), 0.5)
-# path = test_path
+# path = compute_obstacle_avoid_path(4.0, vec(2.0, -0.0), 0.5)
+path = test_path
 
 k = []
 target_speed = 0.2
@@ -52,6 +52,7 @@ def main():
     
     # 3x1 array, representing (x,y,theta) of robot starting state
     start_state = get_pos(start_pos, start_rot)
+    start_state[2] = std_range(start_state[2])
 
     times = []
     actual_states = []
@@ -61,9 +62,11 @@ def main():
         current_pos, current_rot = listener.lookupTransform(from_frame, to_frame, listener.getLatestCommonTime(from_frame, to_frame))
         # 3x1 array, representing (x,y,theta) of current robot state
         current_state = get_pos(current_pos, current_rot)
+        print(current_state[2])
+        current_state[2] = std_range(current_state[2])
         # 3x1 array representing (x,y,theta) of current robot state, relative to starting state.  look at rigid method in utils.py
         current_state = current_state - start_state
-        
+
         # for the plot at the end
         times.append(s * hertz)
         # pdb.set_trace()

@@ -55,10 +55,16 @@ class Controller():
 		# angular_vel = desired[1]
 
 		vel_msg = Twist()
-		vel_msg.linear.x = v_r + 1.5*dy #desired[0]
 		vel_msg.linear.y = 0
 		vel_msg.linear.z = 0
 		vel_msg.angular.x = 0 
 		vel_msg.angular.y = 0
-		vel_msg.angular.z = w_r + 2.5*d_theta #desired[1]
+		if not self.obstacle:
+			vel_msg.linear.x = v_r + 1.5*dy #desired[0]
+			vel_msg.angular.z = w_r + 2.5*d_theta #desired[1]
+		else:
+			dist_to_obstacle = np.linalg.norm(current_state[:2] - self.obstacle_center)
+			angle_to_obstacle = std_range(np.arctan2(self.obstacle_center[1] - current_state[1], self.obstacle_center[0] - current_state[0]) - current_state[2] - np.pi/2)
+			vel_msg.linear.x = v_r + 1.5*dy #desired[0]
+			vel_msg.angular.z = w_r + 2.5*d_theta + 0.8/(dist_to_obstacle+0.1)**2*(angle_to_obstacle - np.pi/2) #desired[1]
 		return vel_msg

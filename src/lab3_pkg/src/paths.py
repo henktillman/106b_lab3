@@ -330,9 +330,7 @@ three_point_turn_path = ChainPath([
     ArcPath(1, np.pi/3, left_turn=False)
 ])
 
-test_path = ChainPath([
-    ArcPath(0.5, 2*np.pi, left_turn=True)
-])
+linear_path = ChainPath([LinearPath(2)])
 
 if __name__ == '__main__':
     # path = three_point_turn_path

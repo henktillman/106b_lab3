@@ -29,7 +29,7 @@ class Controller():
 
 		"""
 		# Control parameters
-		k1, k2, k3 = 0.75, 0.75, 0.75
+		k1, k2, k3 = 0.3, 0.3, 0.3
 
 		target_s = self.path.target_state(s)
 		target_v = self.path.target_velocity(s)
@@ -45,11 +45,17 @@ class Controller():
 
 		desired = np.matmul(C, ref) - u
 
+		angular_vel = desired[1][0][0]
+		if angular_vel < -np.pi:
+			angular_vel = -np.pi
+		elif angular_vel > np.pi:
+			angular_vel = np.pi
+
 		vel_msg = Twist()
-		vel_msg.linear.x = desired[0][0][0]/5
+		vel_msg.linear.x = 0.2 * desired[0][0][0] / abs(desired[0][0][0])
 		vel_msg.linear.y = 0
 		vel_msg.linear.z = 0
 		vel_msg.angular.x = 0 
 		vel_msg.angular.y = 0
-		vel_msg.angular.z = desired[1][0][0]
+		vel_msg.angular.z = angular_vel
 		return vel_msg

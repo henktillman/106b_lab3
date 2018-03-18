@@ -12,12 +12,12 @@ import pdb
 cmd_vel = rospy.Publisher('cmd_vel_mux/input/navi', Twist, queue_size=10)
 
 # path = parallel_parking_path
-path = three_point_turn_path
-# path = compute_obstacle_avoid_path(4.0, vec(2.0, -0.0), 0.5)
-# path = LinearPath(3.5)
+# path = three_point_turn_path
+path = compute_obstacle_avoid_path(4.0, vec(2.0, -0.0), 0.5)
+# path = test_path
 
 k = []
-target_speed = 1.0
+target_speed = 0.2
 
 obstacle = False
 obstacle_center = vec(2.0, -0.0)

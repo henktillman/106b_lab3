@@ -76,7 +76,7 @@ class ArcPath(MotionPath):
             self.angle = 1e-8
         self.left_turn = left_turn
         self.center = np.array([-self.radius, 0])
-        self.target_velocity_norm = 1
+        self.target_velocity_norm = 0.2
         self.time = self.total_length / self.target_velocity_norm
 
     def target_state(self, s):
@@ -325,6 +325,11 @@ three_point_turn_path = ChainPath([
     ArcPath(1, np.pi/3, left_turn=False),
     ArcPath(1, -np.pi/3, left_turn=True),
     ArcPath(1, np.pi/3, left_turn=False)
+])
+
+test_path = ChainPath([
+    LinearPath(1),
+    ArcPath(1, -np.pi/3, left_turn=True)
 ])
 
 if __name__ == '__main__':

@@ -116,7 +116,7 @@ class ArcPath(MotionPath):
         """
         angle = s / self.total_length * self.angle
         theta_dot = self.angle / self.time
-        pos_dot = self.target_velocity_norm * np.array([self.cos(angle + np.pi/2), self.sin(angle + np.pi/2)])
+        pos_dot = self.target_velocity_norm * np.array([np.cos(angle + np.pi/2), np.sin(angle + np.pi/2)])
         if self.left_turn:
             return np.array([pos_dot[0], pos_dot[1], theta_dot])
         else:
@@ -331,4 +331,4 @@ if __name__ == '__main__':
     # path = parallel_parking_path
     path = compute_obstacle_avoid_path(4, np.array([0, 2]), 1)
     print(path.end_state)
-    plot_path(path)
+    plot_path(three_point_turn_path)

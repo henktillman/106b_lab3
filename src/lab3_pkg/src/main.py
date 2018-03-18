@@ -11,8 +11,8 @@ import pdb
 
 cmd_vel = rospy.Publisher('cmd_vel_mux/input/navi', Twist, queue_size=10)
 
-path = parallel_parking_path
-# path = three_point_turn_path
+# path = parallel_parking_path
+path = three_point_turn_path
 # path = compute_obstacle_avoid_path(4.0, vec(2.0, -0.0), 0.5)
 # path = LinearPath(3.5)
 
@@ -46,7 +46,7 @@ def main():
     # if you have this here
     hertz = 10
     rate = rospy.Rate(hertz)
-    pdb.set_trace()
+    # pdb.set_trace()
     # getting the position of the turtlebot
     start_pos, start_rot = listener.lookupTransform(from_frame, to_frame, listener.getLatestCommonTime(from_frame, to_frame))
     
@@ -66,13 +66,15 @@ def main():
         
         # for the plot at the end
         times.append(s * hertz)
+        # pdb.set_trace()
+        target_state = path.target_state(s)
         actual_states.append(current_state)
         target_states.append(target_state)
 
         # I may have forgotten some parameters here
         # nah you good bro
         move_cmd = controller.step_path(current_state, s)
-        self.cmd_vel.publish(move_cmd)
+        cmd_vel.publish(move_cmd)
 
         # I believe this should be the same as the ros rate time, so if you change that, change it here too
         s += target_speed / hertz 
@@ -100,6 +102,6 @@ def shutdown():
 if __name__ == '__main__':
     try:
         main()
-    except e:
+    except Exception as e:
         print e
         rospy.loginfo("Lab3 node terminated.")

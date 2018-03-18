@@ -13,8 +13,8 @@ cmd_vel = rospy.Publisher('cmd_vel_mux/input/navi', Twist, queue_size=10)
 
 # path = parallel_parking_path
 # path = three_point_turn_path
-# path = compute_obstacle_avoid_path(4.0, vec(2.0, -0.0), 0.5)
-path = test_path
+path = compute_obstacle_avoid_path(2, vec(0, 1.2), 0.4)
+# path = test_path
 
 k = []
 target_speed = 0.2
@@ -26,7 +26,7 @@ obstacle_radius = 1
 controller = Controller(path, k, target_speed, obstacle, obstacle_center, obstacle_radius)
 
 def get_pos(pos, rot):
-    yaw = np.arcsin(2*rot[0]*rot[1] + 2*rot[2]*rot[3])
+    yaw = tf.transformations.euler_from_quaternion(rot)[2]
     return np.array([pos[0], pos[1], yaw])
 
 def main():
@@ -34,7 +34,7 @@ def main():
 
     rospy.loginfo("To stop TurtleBot CTRL + C")
     rospy.on_shutdown(shutdown)
-    
+
     # setting up the transform listener to find turtlebot position
     listener = tf.TransformListener()
     from_frame = 'odom'
@@ -52,7 +52,6 @@ def main():
     
     # 3x1 array, representing (x,y,theta) of robot starting state
     start_state = get_pos(start_pos, start_rot)
-    start_state[2] = std_range(start_state[2])
 
     times = []
     actual_states = []
@@ -62,10 +61,11 @@ def main():
         current_pos, current_rot = listener.lookupTransform(from_frame, to_frame, listener.getLatestCommonTime(from_frame, to_frame))
         # 3x1 array, representing (x,y,theta) of current robot state
         current_state = get_pos(current_pos, current_rot)
-        print(current_state[2])
-        current_state[2] = std_range(current_state[2])
         # 3x1 array representing (x,y,theta) of current robot state, relative to starting state.  look at rigid method in utils.py
-        current_state = current_state - start_state
+        current_state[2] = std_range(current_state[2] - start_state[2])
+        dist = np.linalg.norm(current_state[:2] - start_state[:2])
+        theta = np.arctan2(current_state[1] - start_state[1], current_state[0] - start_state[0])
+        current_state[0], current_state[1] = dist*np.cos(theta - start_state[2] + np.pi/2), dist*np.sin(theta - start_state[2] + np.pi/2)
 
         # for the plot at the end
         times.append(s * hertz)

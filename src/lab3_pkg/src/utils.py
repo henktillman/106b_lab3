@@ -59,8 +59,15 @@ def rigid(twist):
         ])
 
 def std_range(theta):
-    while theta < 0:
+    while theta < -np.pi:
 		theta += 2*np.pi
-    while theta >= 2*np.pi:
+    while theta >= np.pi:
     	theta -= 2*np.pi
     return theta
+
+def rotate_about_endpoint(cur_twist, end_twist):
+        cur_twist[0], cur_twist[1] = np.dot(rotation2d(end_twist[2]), cur_twist[:2])
+        cur_twist[2] += end_twist[2]
+        cur_twist[0] += end_twist[0]
+        cur_twist[1] += end_twist[1]
+        return cur_twist

@@ -228,7 +228,7 @@ class ChainPath(MotionPath):
         i, s = self.get_subpath_index_and_displacement(s)
         target_state = self.subpaths[i].target_state(s)
         for j in reversed(range(0, i)):
-            target_state = self.rotate_about_endpoint(target_state, self.subpaths[j].end_state)
+            target_state = rotate_about_endpoint(target_state, self.subpaths[j].end_state)
         target_state[2] = std_range(target_state[2])
         return target_state
 
@@ -248,7 +248,9 @@ class ChainPath(MotionPath):
         """
         # YOUR CODE HERE
         i, s = self.get_subpath_index_and_displacement(s)
-        return self.subpaths[i].target_velocity(s)
+        target_velocity = self.subpaths[i].target_velocity(s)
+        target_velocity[2] = std_range(target_velocity[2])
+        return target_velocity
 
     def sgn(self, s):
         i, s = self.get_subpath_index_and_displacement(s)
@@ -264,13 +266,6 @@ class ChainPath(MotionPath):
         """
         # YOUR CODE HERE
         return sum([path.total_length for path in self.subpaths])
-
-    def rotate_about_endpoint(self, cur_twist, end_twist):
-        cur_twist[0], cur_twist[1] = np.dot(rotation2d(end_twist[2]), cur_twist[:2])
-        cur_twist[2] += end_twist[2]
-        cur_twist[0] += end_twist[0]
-        cur_twist[1] += end_twist[1]
-        return cur_twist
 
 def compute_obstacle_avoid_path(dist, obs_center, obs_radius):
     obs_angle = np.arctan2(obs_center[1], obs_center[0]) - np.pi/2
@@ -321,26 +316,26 @@ def plot_path(path):
 
 # YOUR CODE HERE
 parallel_parking_path = ChainPath([
-    LinearPath(1),
-    ArcPath(0, np.pi/6, left_turn=False),
+    LinearPath(0.5),
+    ArcPath(0, np.pi/8, left_turn=False),
     LinearPath(-1/np.cos(np.pi/6)),
-    ArcPath(0, np.pi/6, left_turn=True),
-    LinearPath(1)
+    ArcPath(0, np.pi/8, left_turn=True),
+    LinearPath(0.5)
 ])
 
 # YOUR CODE HERE
 three_point_turn_path = ChainPath([
-    ArcPath(0.5, np.pi/3, left_turn=False),
-    ArcPath(0.5, -np.pi/3, left_turn=True),
-    ArcPath(0.5, np.pi/3, left_turn=False)
+    ArcPath(1, np.pi/3, left_turn=False),
+    ArcPath(1, -np.pi/3, left_turn=True),
+    ArcPath(1, np.pi/3, left_turn=False)
 ])
 
 test_path = ChainPath([
-    ArcPath(0.5, -2*np.pi, left_turn=False)
+    ArcPath(0.5, 2*np.pi, left_turn=True)
 ])
 
 if __name__ == '__main__':
-    path = three_point_turn_path
-    # path = compute_obstacle_avoid_path(4, np.array([0, 2]), 1)
+    # path = three_point_turn_path
+    path = compute_obstacle_avoid_path(1, vec(0, 0.5), 0.2)
     print(path.end_state)
     plot_path(path)

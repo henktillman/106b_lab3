@@ -14,14 +14,14 @@ cmd_vel = rospy.Publisher('cmd_vel_mux/input/navi', Twist, queue_size=10)
 k = []
 target_speed = 0.2
 
-obstacle = True
+obstacle = False
 obstacle_center = vec(0, 1.2)
 obstacle_radius = 0.4
 
 # path = parallel_parking_path
 # path = three_point_turn_path
-# path = compute_obstacle_avoid_path(2, obstacle_center, obstacle_radius) #keep obstacle set to False above...
-path = linear_path
+path = compute_obstacle_avoid_path(2, obstacle_center, obstacle_radius) #keep obstacle set to False above...
+# path = linear_path
 
 controller = Controller(path, k, target_speed, obstacle, obstacle_center, obstacle_radius)
 
